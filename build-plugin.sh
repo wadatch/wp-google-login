@@ -36,4 +36,12 @@ cd ..
 echo "[build] Cleaning up build directory..."
 rm -rf "$BUILD_DIR"
 
-echo "[build] Done! => $DIST_DIR/$ZIP_FILE" 
+echo "[build] Done! => $DIST_DIR/$ZIP_FILE"
+
+echo "\n==============================="
+echo "[注意] デプロイ・配布時のポイント"
+echo "・ dist/$ZIP_FILE を展開したら vendor/ ディレクトリごとサーバーにアップロードしてください。"
+echo "・ Google APIクライアント利用には composer install で依存ライブラリが必要です。"
+echo "・ autoload.php のパスが合わない場合は wp-google-login.php の require_once を修正してください。"
+echo "・ 詳細はREADME.mdも参照してください。"
+echo "===============================\n" 

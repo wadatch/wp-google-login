@@ -141,6 +141,13 @@ function gsl_settings_page() {
     ?>
     <div class="wrap">
         <h1>Google Simple Login</h1>
+        <div style="margin:1em 0;padding:1em;background:#f8f8f8;border-left:4px solid #4285f4;">
+            <strong>コールバックURL:</strong><br>
+            <code><?php echo esc_html( gsl_redirect_uri() ); ?></code><br>
+            <small>このURLをGoogle Cloud Consoleの「承認済みのリダイレクトURI」に登録してください。</small>
+            <br><br>
+            <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" style="color:#4285f4;text-decoration:underline;font-weight:bold;">Google Cloud Console（OAuthクライアント設定はこちら）</a>
+        </div>
         <form method="post" action="options.php">
             <?php
             settings_fields( 'gsl_options_group' );
