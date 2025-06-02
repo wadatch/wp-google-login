@@ -3,7 +3,7 @@
 Plugin Name: wp-google-login
 Plugin URI: https://github.com/wadatch/wp-google-login
 Description: GoogleアカウントでWordPressにログインできるシンプルなプラグインです。
-Version: 1.0.1
+Version: 1.0.2
 Author: wadatch
 Author URI: https://github.com/wadatch
 License: MIT
