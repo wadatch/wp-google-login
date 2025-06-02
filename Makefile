@@ -10,4 +10,5 @@ build:
 	bash build-plugin.sh
 
 clean:
-	rm -rf $(BUILD_DIR) $(DIST_DIR)/$(ZIP_FILE) 
+	rm -rf $(BUILD_DIR) $(DIST_DIR)/$(ZIP_FILE)
+	rm -rf vendor composer.lock 
