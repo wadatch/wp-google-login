@@ -17,7 +17,7 @@ WordPressにGoogleログイン（OAuth/One Tap）を簡単に追加できるプ�
 
 ## インストール
 ### 前提
-- PHP 7.4以上
+- PHP 8.1.0以上
 - Composer
 
 ### 手順
@@ -50,6 +50,8 @@ composer install --no-dev --optimize-autoloader
 
 ## ライセンス
 MIT License
+
+This software is released under the MIT License, see [LICENSE](./LICENSE).
 
 詳細は[LICENSE](./LICENSE)を参照してください。
 

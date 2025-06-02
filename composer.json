@@ -4,6 +4,7 @@
   "type": "wordpress-plugin",
   "license": "MIT",
   "require": {
+    "php": ">=7.4",
     "google/apiclient": "^2.16"
   },
   "autoload": {
