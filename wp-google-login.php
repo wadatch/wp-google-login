@@ -11,8 +11,8 @@ Text Domain: wp-google-login
 */
 
 // Composer autoload
-if ( file_exists( __DIR__ . '/../vendor/autoload.php' ) ) {
-    require_once __DIR__ . '/../vendor/autoload.php';
+if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
+    require_once __DIR__ . '/vendor/autoload.php';
 } else {
     if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
         error_log( '[GSL] vendor/autoload.php not found. Run "composer install".' );
@@ -161,15 +161,41 @@ function gsl_settings_page() {
 
 // === Login form button ====================================================
 
-add_action( 'login_form', function () {
+add_action( 'login_footer', function () {
     if ( ! gsl_client_id() || ! gsl_client_secret() ) {
         return;
     }
     $client = gsl_google_client();
     $auth   = esc_url( $client->createAuthUrl() );
-    echo '<p style="text-align:center; margin-top:1em;">';
-    echo '<a class="button button-primary button-large" href="' . $auth . '">Google でログイン</a>';
-    echo '</p>';
+    echo '<div id="gsl-google-login-btn" style="margin-top:1.5em; text-align:center;">';
+    echo '<style>.gsi-material-button{display:inline-flex;align-items:center;justify-content:center;background:#fff;color:#3c4043;border:none;border-radius:4px;box-shadow:0 1px 2px 0 rgba(60,64,67,.3),0 1.5px 5px 0 rgba(60,64,67,.15);padding:0;min-width:240px;min-height:40px;cursor:pointer;transition:box-shadow .2s;outline:none;position:relative;text-decoration:none;}.gsi-material-button:hover{box-shadow:0 2px 4px 0 rgba(60,64,67,.3),0 3px 10px 0 rgba(60,64,67,.15);}.gsi-material-button-content-wrapper{display:flex;align-items:center;width:100%;height:100%;padding:10px 24px;}.gsi-material-button-icon{margin-right:12px;display:flex;align-items:center;}.gsi-material-button-contents{font-family:Roboto,Arial,sans-serif;font-weight:500;font-size:16px;letter-spacing:.25px;}.gsi-material-button-state{position:absolute;top:0;right:0;bottom:0;left:0;border-radius:inherit;}</style>';
+    echo '<a href="' . $auth . '" class="gsi-material-button" style="text-decoration:none;">
+      <div class="gsi-material-button-state"></div>
+      <div class="gsi-material-button-content-wrapper">
+        <div class="gsi-material-button-icon">
+          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" xmlns:xlink="http://www.w3.org/1999/xlink" style="display: block;" width="24" height="24">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+            <path fill="none" d="M0 0h48v48H0z"></path>
+          </svg>
+        </div>
+        <span class="gsi-material-button-contents">Sign in with Google</span>
+        <span style="display: none;">Sign in with Google</span>
+      </div>
+    </a>';
+    echo '</div>';
+    // Lost your password? の下に移動
+    echo '<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var btn = document.getElementById("gsl-google-login-btn");
+        var nav = document.getElementById("nav");
+        if(btn && nav && nav.parentNode) {
+            nav.parentNode.insertBefore(btn, nav.nextSibling);
+        }
+    });
+    </script>';
 } );
 
 // === Google One Tap =======================================================
@@ -261,7 +287,12 @@ function gsl_handle_idinfo( $idinfo ) {
         $user = $users[0] ?? null;
     }
 
-    if ( ! $user ) { // create
+    if ( ! $user ) {
+        $domain_roles = gsl_get_option( 'domain_roles', '' );
+        if ( empty( trim( $domain_roles ) ) ) {
+            gsl_log( 'User creation blocked: no Domain → Role Mapping', [ 'email' => $email ] );
+            wp_die( '未登録ユーザーです' );
+        }
         $random_pwd = wp_generate_password( 32, true, true );
         $user_id    = wp_create_user( $email, $random_pwd, $email );
         if ( is_wp_error( $user_id ) ) {
@@ -273,6 +304,26 @@ function gsl_handle_idinfo( $idinfo ) {
 
     if ( ! get_user_meta( $user->ID, 'google_sub', true ) ) {
         update_user_meta( $user->ID, 'google_sub', $sub );
+    }
+
+    // Googleプロフィール情報をWPユーザーに反映（未設定時のみ）
+    if ( $user ) {
+        // First Name
+        if ( empty( get_user_meta( $user->ID, 'first_name', true ) ) && !empty($idinfo['given_name']) ) {
+            update_user_meta( $user->ID, 'first_name', sanitize_text_field($idinfo['given_name']) );
+        }
+        // Last Name
+        if ( empty( get_user_meta( $user->ID, 'last_name', true ) ) && !empty($idinfo['family_name']) ) {
+            update_user_meta( $user->ID, 'last_name', sanitize_text_field($idinfo['family_name']) );
+        }
+        // Nickname
+        if ( empty( $user->nickname ) && !empty($idinfo['name']) ) {
+            wp_update_user( [ 'ID' => $user->ID, 'nickname' => sanitize_text_field($idinfo['name']) ] );
+        }
+        // Profile Picture
+        if ( empty( get_user_meta( $user->ID, 'profile_picture', true ) ) && !empty($idinfo['picture']) ) {
+            update_user_meta( $user->ID, 'profile_picture', esc_url_raw($idinfo['picture']) );
+        }
     }
 
     gsl_maybe_assign_role( $user );
