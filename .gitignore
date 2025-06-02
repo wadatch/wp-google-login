@@ -1,0 +1,9 @@
+# Composer dependencies
+/vendor/
+
+dist/
+
+# OS・エディタごみ
+.DS_Store
+*.swp
+*.swo 

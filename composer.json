@@ -1,0 +1,14 @@
+{
+  "name": "wadatch/wp-google-login",
+  "description": "Google OAuth / One Tap login bridge for WordPress",
+  "type": "wordpress-plugin",
+  "license": "MIT",
+  "require": {
+    "google/apiclient": "^2.16"
+  },
+  "autoload": {
+    "psr-4": {
+      "wp-google-login\\": "./"
+    }
+  }
+}
