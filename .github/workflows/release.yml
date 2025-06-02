@@ -1,0 +1,60 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # タグ操作のため
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+
+      - name: Set up Composer
+        uses: php-actions/composer@v6
+
+      - name: Bump patch version in wp-google-login.php
+        id: bump_version
+        run: |
+          FILE=wp-google-login.php
+          # 現在のバージョン取得
+          VERSION_LINE=$(grep -n "^Version: " $FILE | head -1)
+          LINE_NUM=$(echo $VERSION_LINE | cut -d: -f1)
+          VERSION=$(echo $VERSION_LINE | cut -d' ' -f2)
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f2)
+          PATCH=$(echo $VERSION | cut -d. -f3)
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+          # バージョン書き換え
+          sed -i.bak "${LINE_NUM}s/Version: .*/Version: $NEW_VERSION/" $FILE
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Commit and push version bump
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add wp-google-login.php
+          git commit -m "Bump version to ${{ steps.bump_version.outputs.version }}"
+          git push
+
+      - name: Build plugin
+        run: bash build-plugin.sh
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.bump_version.outputs.version }}
+          name: Release v${{ steps.bump_version.outputs.version }}
+          files: dist/wp-google-login.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
