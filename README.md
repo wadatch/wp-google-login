@@ -1,6 +1,7 @@
 # wp-google-login
 
-[GitHubリポジトリはこちら](https://github.com/wadatch/wp-google-login)
+![Build and Release](https://github.com/wadatch/wp-google-login/actions/workflows/release.yml/badge.svg?branch=main)
+
 
 WordPressにGoogleログイン（OAuth/One Tap）を簡単に追加できるプラグインです。GoogleアカウントでのログインボタンやOne Tapによる即時ログイン、メールアドレス一致による既存ユーザー認証・新規ユーザー自動作成、ドメイン→ロール自動割当、管理画面からの設定、開発用フックなどを提供します。
 
